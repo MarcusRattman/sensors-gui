@@ -4,14 +4,14 @@
 
   let temps: ITemps;
 
-  setInterval(greet, 2000);
+  setInterval(update_temps, 2000);
 
-  async function greet() {
+  async function update_temps() {
     // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     temps = await invoke("read_temps");
   }
 
-  greet();
+  update_temps();
 </script>
 
 <div class="container">

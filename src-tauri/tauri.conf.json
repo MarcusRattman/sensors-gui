@@ -23,8 +23,7 @@
         "width": 200,
         "height": 300,
         "minHeight": 300,
-        "minWidth": 200,
-        "skipTaskbar": true
+        "minWidth": 200
       }
     ],
     "security": {

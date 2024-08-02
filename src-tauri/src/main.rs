@@ -4,6 +4,7 @@
 
 use std::{
     collections::HashMap,
+    io::Write,
     process::{Command, Stdio},
 };
 
@@ -12,18 +13,24 @@ fn read_temps<'a>() -> HashMap<String, String> {
     let sensors = Command::new("sensors")
         .stdout(Stdio::piped())
         .spawn()
-        .unwrap();
-
-    let grep = Command::new("grep")
-        .arg("-A 0")
-        .arg("°C")
-        .stdin(Stdio::from(sensors.stdout.unwrap()))
-        .stdout(Stdio::piped())
-        .spawn()
         .unwrap()
         .wait_with_output()
         .unwrap()
         .stdout;
+
+    let sen_out = String::from_utf8(sensors).unwrap();
+    let sen_out = sen_out.as_bytes();
+
+    let mut grep = Command::new("grep")
+        .arg("-A 0")
+        .arg("°C")
+        .stdin(Stdio::piped())
+        .stdout(Stdio::piped())
+        .spawn()
+        .unwrap();
+
+    grep.stdin.as_mut().unwrap().write_all(sen_out).unwrap();
+    let grep = grep.wait_with_output().unwrap().stdout;
 
     let output = String::from_utf8(grep)
         .unwrap()

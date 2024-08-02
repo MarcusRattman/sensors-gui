@@ -9,7 +9,7 @@ use std::{
 };
 
 #[tauri::command(rename_all = "snake_case")]
-fn read_temps<'a>() -> HashMap<String, String> {
+fn read_temps() -> HashMap<String, String> {
     let sensors = Command::new("sensors")
         .stdout(Stdio::piped())
         .spawn()

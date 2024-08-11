@@ -1,52 +1,12 @@
 // Prevents additional console window on Windows in release, DO NOT REMOVE!!
 #![cfg_attr(not(debug_assertions), windows_subsystem = "windows")]
 // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
-
-use std::{
-    collections::HashMap,
-    io::Write,
-    process::{Command, Stdio},
-};
+mod reader;
+use std::collections::BTreeMap;
 
 #[tauri::command(rename_all = "snake_case")]
-fn read_temps() -> HashMap<String, String> {
-    let sensors = Command::new("sensors")
-        .stdout(Stdio::piped())
-        .spawn()
-        .unwrap()
-        .wait_with_output()
-        .unwrap()
-        .stdout;
-
-    let sen_out = String::from_utf8(sensors).unwrap();
-    let sen_out = sen_out.as_bytes();
-
-    let mut grep = Command::new("grep")
-        .arg("-A 0")
-        .arg("°C")
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .spawn()
-        .unwrap();
-
-    grep.stdin.as_mut().unwrap().write_all(sen_out).unwrap();
-    let grep = grep.wait_with_output().unwrap().stdout;
-
-    let output = String::from_utf8(grep)
-        .unwrap()
-        .replace(":", "")
-        .replace("--", "")
-        .replace("=", "");
-
-    let output = output.split_whitespace().collect::<Vec<_>>();
-
-    output
-        .chunks(2)
-        .map(|chunk| (chunk[0], chunk[1]))
-        .fold(HashMap::new(), |mut acc, (x, y)| {
-            acc.insert(x.to_string(), y.to_string());
-            acc
-        })
+fn read_temps() -> BTreeMap<String, usize> {
+    reader::get_devices()
 }
 
 fn main() {

@@ -1,26 +1,57 @@
 <script lang="ts">
   import { invoke } from "@tauri-apps/api/tauri";
-  import type { ITemps } from "../models";
 
-  let temps: ITemps;
+  let temps: { [key: string]: number };
+  let min: { [key: string]: number } = {};
+  let max: { [key: string]: number } = {};
 
   setInterval(update_temps, 2000);
 
   async function update_temps() {
-    // Learn more about Tauri commands at https://tauri.app/v1/guides/features/command
     temps = await invoke("read_temps");
+
+    for (let [key, value] of Object.entries(temps)) {
+      if (!min[key] && !max[key]) {
+        min[key] = value;
+        max[key] = value;
+      }
+
+      if (value < min[key]) {
+        min[key] = value;
+      }
+
+      if (value > max[key]) {
+        max[key] = value;
+      }
+    }
   }
 
   update_temps();
 </script>
 
 <div class="container">
-  {#if temps}
-    <p>CPU: {temps.Tctl}</p>
-    <p>GPU: {temps.edge}</p>
-    <p>RAM: {temps.mem}</p>
-    <p>Junction: {temps.junction}</p>
-  {/if}
+  <table>
+    <thead>
+      <tr>
+        <th>Device</th>
+        <th>Temp</th>
+        <th>Min</th>
+        <th>Max</th>
+      </tr>
+    </thead>
+    <tbody>
+      {#if temps}
+        {#each Object.entries(temps) as [k, v]}
+          <tr>
+            <td>{k}</td>
+            <td>{v}</td>
+            <td>{min[k]}</td>
+            <td>{max[k]}</td>
+          </tr>
+        {/each}
+      {/if}
+    </tbody>
+  </table>
 </div>
 
 <style>
@@ -43,11 +74,9 @@
   .container {
     margin: 0;
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     justify-content: center;
     text-align: center;
-    width: 200px;
-    height: 200px;
   }
 
   button {

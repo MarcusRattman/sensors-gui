@@ -19,11 +19,7 @@
     },
     "windows": [
       {
-        "title": "sensors-gui",
-        "width": 200,
-        "height": 300,
-        "minHeight": 300,
-        "minWidth": 200
+        "title": "sensors-gui"
       }
     ],
     "security": {

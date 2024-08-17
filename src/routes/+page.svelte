@@ -1,27 +1,45 @@
 <script lang="ts">
+  import { type ITempTimestamp, temp_timestamp } from "$lib";
   import { invoke } from "@tauri-apps/api/tauri";
+  import { TempsTable, TempsGraph } from "../components";
+  import { writable } from "svelte/store";
 
-  let temps: { [key: string]: number };
-  let min: { [key: string]: number } = {};
-  let max: { [key: string]: number } = {};
+  let temps: { [device: string]: number } = {};
+  let min: { [device: string]: number } = {};
+  let max: { [device: string]: number } = {};
+  let timeline: { [device: string]: ITempTimestamp[] } = {};
+
+  export let reactivetimeline = writable(timeline);
 
   setInterval(update_temps, 2000);
 
   async function update_temps() {
     temps = await invoke("read_temps");
 
-    for (let [key, value] of Object.entries(temps)) {
-      if (!min[key] && !max[key]) {
-        min[key] = value;
-        max[key] = value;
+    for (let [device, temp] of Object.entries(temps)) {
+      if (!min[device] && !max[device]) {
+        min[device] = temp;
+        max[device] = temp;
       }
 
-      if (value < min[key]) {
-        min[key] = value;
+      if (temp < min[device]) {
+        min[device] = temp;
       }
 
-      if (value > max[key]) {
-        max[key] = value;
+      if (temp > max[device]) {
+        max[device] = temp;
+      }
+
+      if (!timeline[device]) {
+        $reactivetimeline[device] = [];
+      }
+
+      $reactivetimeline[device].push(temp_timestamp(temp));
+
+      timeline[device].push(temp_timestamp(temp));
+
+      if (timeline[device].length > 20) {
+        timeline[device].shift();
       }
     }
   }
@@ -30,28 +48,8 @@
 </script>
 
 <div class="container">
-  <table>
-    <thead>
-      <tr>
-        <th>Device</th>
-        <th>Temp</th>
-        <th>Min</th>
-        <th>Max</th>
-      </tr>
-    </thead>
-    <tbody>
-      {#if temps}
-        {#each Object.entries(temps) as [k, v]}
-          <tr>
-            <td>{k}</td>
-            <td>{v}</td>
-            <td>{min[k]}</td>
-            <td>{max[k]}</td>
-          </tr>
-        {/each}
-      {/if}
-    </tbody>
-  </table>
+  <TempsTable {temps} {min} {max} />
+  <TempsGraph {timeline} />
 </div>
 
 <style>
@@ -73,10 +71,10 @@
 
   .container {
     margin: 0;
-    display: flex;
-    flex-wrap: wrap;
-    justify-content: center;
-    text-align: center;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    place-items: center;
+    gap: 1rem;
   }
 
   button {

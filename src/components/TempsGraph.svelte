@@ -13,6 +13,7 @@
     } from "chart.js";
     import type { ChartData, Point } from "chart.js";
     import { onMount } from "svelte";
+    import { timelinestore } from "../stores/";
 
     ChartJS.register(
         Title,
@@ -26,9 +27,9 @@
 
     let chartRef: ChartJS<"line", (number | Point)[], unknown>;
 
-    export let timeline: { [device: string]: ITempTimestamp[] };
-
-    let energy = [65, 59, 80, 81, 56, 90];
+    let timestamps = ["xx:xx::xx"];
+    let temps = [0, 0, 0, 0, 0, 0];
+    let energy = [0, 0, 0, 0, 0, 0];
 
     const data: ChartData<"line", (number | Point)[], unknown> = {
         labels: ["January", "February", "March", "April", "May", "Test"],
@@ -51,18 +52,24 @@
         ],
     };
 
+    // timelinestore.subscribe((newTimeline) => {
+    //     timestamps = newTimeline["Tctl"].map((t) => t.timestamp);
+    //     temps = newTimeline["Tctl"].map((t) => t.temp);
+    //     chartRef.update();
+    // });
+
     onMount(() => {
         const interval = setInterval(() => {
             rendom();
-        }, 1000);
+        }, 2000);
         return () => {
             clearInterval(interval);
         };
     });
 
     function rendom() {
-        let index = Math.round(Math.random() * 5);
-        energy[index] = Math.round(Math.random() * 100);
+        data.datasets[0].data = $timelinestore["Tctl"].map((t) => t.temp);
+        data.labels = $timelinestore["Tctl"].map((t) => t.timestamp);
         chartRef.update();
     }
 </script>
@@ -72,5 +79,10 @@
     {data}
     height={300}
     width={300}
-    options={{ maintainAspectRatio: true, responsive: false }}
+    options={{
+        maintainAspectRatio: true,
+        responsive: false,
+        scales: { y: { min: 30, max: 100 } },
+        animation: { duration: 0 },
+    }}
 />

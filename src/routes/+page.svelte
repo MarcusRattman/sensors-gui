@@ -2,14 +2,12 @@
   import { type ITempTimestamp, temp_timestamp } from "$lib";
   import { invoke } from "@tauri-apps/api/tauri";
   import { TempsTable, TempsGraph } from "../components";
-  import { writable } from "svelte/store";
+  import { timelinestore } from "../stores";
 
   let temps: { [device: string]: number } = {};
   let min: { [device: string]: number } = {};
   let max: { [device: string]: number } = {};
   let timeline: { [device: string]: ITempTimestamp[] } = {};
-
-  export let reactivetimeline = writable(timeline);
 
   setInterval(update_temps, 2000);
 
@@ -31,16 +29,16 @@
       }
 
       if (!timeline[device]) {
-        $reactivetimeline[device] = [];
+        timeline[device] = [];
       }
-
-      $reactivetimeline[device].push(temp_timestamp(temp));
 
       timeline[device].push(temp_timestamp(temp));
 
       if (timeline[device].length > 20) {
         timeline[device].shift();
       }
+
+      timelinestore.set(timeline);
     }
   }
 
@@ -49,7 +47,7 @@
 
 <div class="container">
   <TempsTable {temps} {min} {max} />
-  <TempsGraph {timeline} />
+  <TempsGraph />
 </div>
 
 <style>

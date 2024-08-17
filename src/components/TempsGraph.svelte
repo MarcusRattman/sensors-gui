@@ -1,6 +1,5 @@
 <script lang="ts">
     import { Line } from "svelte-chartjs";
-    import { type ITempTimestamp } from "$lib";
     import {
         Chart as ChartJS,
         Title,
@@ -12,7 +11,6 @@
         CategoryScale,
     } from "chart.js";
     import type { ChartData, Point } from "chart.js";
-    import { onMount } from "svelte";
     import { timelinestore } from "../stores/";
 
     ChartJS.register(
@@ -27,12 +25,8 @@
 
     let chartRef: ChartJS<"line", (number | Point)[], unknown>;
 
-    let timestamps = ["xx:xx::xx"];
-    let temps = [0, 0, 0, 0, 0, 0];
-    let energy = [0, 0, 0, 0, 0, 0];
-
     const data: ChartData<"line", (number | Point)[], unknown> = {
-        labels: ["January", "February", "March", "April", "May", "Test"],
+        labels: ["xxx"],
         datasets: [
             {
                 label: "My First dataset",
@@ -41,33 +35,19 @@
                 borderColor: "rgb(205, 130, 158)",
                 borderCapStyle: "round",
                 borderDash: [],
-                pointBorderColor: "rgb(205, 130,1 58)",
+                pointBorderColor: "black",
                 pointBackgroundColor: "rgb(255, 255, 255)",
-                pointHoverRadius: 5,
                 pointHoverBackgroundColor: "rgb(0, 0, 0)",
-                pointRadius: 5,
-                pointHitRadius: 10,
-                data: energy,
+                pointRadius: 3,
+                pointHitRadius: 5,
+                data: [0],
             },
         ],
     };
 
-    // timelinestore.subscribe((newTimeline) => {
-    //     timestamps = newTimeline["Tctl"].map((t) => t.timestamp);
-    //     temps = newTimeline["Tctl"].map((t) => t.temp);
-    //     chartRef.update();
-    // });
+    timelinestore.subscribe(refresh);
 
-    onMount(() => {
-        const interval = setInterval(() => {
-            rendom();
-        }, 2000);
-        return () => {
-            clearInterval(interval);
-        };
-    });
-
-    function rendom() {
+    async function refresh() {
         data.datasets[0].data = $timelinestore["Tctl"].map((t) => t.temp);
         data.labels = $timelinestore["Tctl"].map((t) => t.timestamp);
         chartRef.update();
@@ -80,9 +60,9 @@
     height={300}
     width={300}
     options={{
-        maintainAspectRatio: true,
+        maintainAspectRatio: false,
         responsive: false,
-        scales: { y: { min: 30, max: 100 } },
+        scales: { y: { min: 30, max: 100 }, x: { display: false } },
         animation: { duration: 0 },
     }}
 />

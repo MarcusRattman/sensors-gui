@@ -9,7 +9,7 @@
   let max: { [device: string]: number } = {};
   let timeline: { [device: string]: ITempTimestamp[] } = {};
 
-  setInterval(update_temps, 2000);
+  setInterval(update_temps, 1000);
 
   async function update_temps() {
     temps = await invoke("read_temps");
@@ -34,7 +34,7 @@
 
       timeline[device].push(temp_timestamp(temp));
 
-      if (timeline[device].length > 20) {
+      if (timeline[device].length > 100) {
         timeline[device].shift();
       }
 
@@ -46,8 +46,13 @@
 </script>
 
 <div class="container">
-  <TempsTable {temps} {min} {max} />
-  <TempsGraph />
+  <div>
+    <TempsTable {temps} {min} {max} />
+  </div>
+
+  <div>
+    <TempsGraph />
+  </div>
 </div>
 
 <style>
